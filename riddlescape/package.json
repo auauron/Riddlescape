@@ -1,0 +1,26 @@
+{
+  "name": "riddlescape-ai-server",
+  "version": "1.0.0",
+  "description": "AI server for Riddlescape game using Google Gemini",
+  "main": "server_setup.js",
+  "scripts": {
+    "start": "node server_setup.js",
+    "dev": "nodemon server_setup.js"
+  },
+  "dependencies": {
+    "@google/genai": "^1.20.0",
+    "@google/generative-ai": "^0.21.0",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": [
+    "godot",
+    "ai",
+    "game",
+    "riddlescape"
+  ],
+  "author": "Riddlescape Team",
+  "license": "MIT"
+}
