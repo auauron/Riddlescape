@@ -229,38 +229,9 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_qv10x")
 }],
-"loop": true,
+"loop": false,
 "name": &"dead",
-"speed": 4.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_c0asu")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_fq1a3")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_gu4mg")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_tk6la")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_yrxk4")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_eg1p0")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_x2u8p")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_qv10x")
-}],
-"loop": true,
-"name": &"dead_1",
-"speed": 4.0
+"speed": 7.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -378,7 +349,7 @@ script = ExtResource("1_v6fml")
 position = Vector2(1, -56)
 scale = Vector2(2, 2)
 sprite_frames = SubResource("SpriteFrames_khinc")
-animation = &"idle"
+animation = &"jump"
 autoplay = "idle"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]

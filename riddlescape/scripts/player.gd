@@ -5,7 +5,13 @@ extends CharacterBody2D
 const SPEED = 140.0
 const JUMP_VELOCITY = -400.0
 
+var is_dead = false
+
 func _physics_process(delta: float) -> void:
+	# Don't process movement or animations if dead
+	if is_dead:
+		return
+		
 	# Add the gravity.
 	if not is_on_floor():
 		velocity += get_gravity() * delta
@@ -42,3 +48,16 @@ func update_animation():
 	# Idle animation (when not moving and on floor)
 	else:
 		animated_sprite.play("idle")
+
+func die():
+	is_dead = true
+	# Play dead animation
+	animated_sprite.play("dead")
+	# Connect to animation finished signal to stop looping
+	if not animated_sprite.animation_finished.is_connected(_on_dead_animation_finished):
+		animated_sprite.animation_finished.connect(_on_dead_animation_finished)
+
+func _on_dead_animation_finished():
+	# Stop the animation and keep it on the last frame
+	animated_sprite.stop()
+	animated_sprite.frame = animated_sprite.sprite_frames.get_frame_count("dead") - 1

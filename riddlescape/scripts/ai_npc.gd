@@ -13,8 +13,6 @@ var right_boundary: float
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 
 func _ready():
-	body_entered.connect(_on_body_entered)
-	
 	start_position = position.x
 	left_boundary = start_position - MOVE_DISTANCE
 	right_boundary = start_position + MOVE_DISTANCE
@@ -36,17 +34,3 @@ func _process(delta: float) -> void:
 		animated_sprite.flip_h = false 
 		
 	position.x += direction * speed * delta
-
-func _on_body_entered(body):
-	if body.name == "Player":
-		print("You failed!")
-
-		var timer = Timer.new()
-		timer.wait_time = 0.3
-		timer.one_shot = true
-		add_child(timer)
-		timer.timeout.connect(_on_death_timer_timeout)
-		timer.start()
-
-func _on_death_timer_timeout():
-	get_tree().reload_current_scene()
