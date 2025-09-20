@@ -412,7 +412,7 @@ scale = Vector2(2.17129, -2.06625)
 sprite_frames = SubResource("SpriteFrames_dmtjk")
 animation = &"fire"
 autoplay = "idle"
-frame_progress = 0.917396
+frame_progress = 0.736802
 
 [node name="RayCastRight" type="RayCast2D" parent="."]
 target_position = Vector2(21, 0)

@@ -355,7 +355,7 @@ func start_fade_out_static_fire(fire_sprite: AnimatedSprite2D):
 
 func complete_disappearance():
 	print("Phase 3: NPC disappearing completely...")
-	s
+	
 	# Make completely invisible and disable all interactions
 	visible = false
 	set_physics_process(false)
