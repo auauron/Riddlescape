@@ -1,7 +1,10 @@
 [gd_scene load_steps=21 format=3 uid="uid://cg14qu5pg6x4b"]
 
 [ext_resource type="Texture2D" uid="uid://b71k840nrp70i" path="res://assets/sprites/AnimationSheet_Character.png" id="1_np840"]
-[ext_resource type="Script" uid="uid://dpve6iybhe6sq" path="res://scripts/ai_npc.gd" id="1_ueryn"]
+[ext_resource type="Script" uid="uid://hasr3vhf3gv2" path="res://scripts/ai_npc.gd" id="1_ueryn"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_tjild"]
+size = Vector2(16, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_np840"]
 atlas = ExtResource("1_np840")
@@ -128,21 +131,24 @@ animations = [{
 "speed": 7.0
 }]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_tjild"]
-size = Vector2(24, 44)
-
-[node name="AI_NPC" type="CharacterBody2D"]
-position = Vector2(-13, -17)
+[node name="AI_NPC" type="Area2D"]
 script = ExtResource("1_ueryn")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -16)
+shape = SubResource("RectangleShape2D_tjild")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 position = Vector2(0, -16)
-scale = Vector2(-2.17129, 2.06625)
+rotation = -3.14159
+scale = Vector2(2.17129, -2.06625)
 sprite_frames = SubResource("SpriteFrames_dmtjk")
 animation = &"idle"
 autoplay = "idle"
-frame_progress = 0.655837
+frame_progress = 0.966641
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(1, -6)
-shape = SubResource("RectangleShape2D_tjild")
+[node name="RayCastRight" type="RayCast2D" parent="."]
+target_position = Vector2(21, 0)
+
+[node name="RayCastLeft" type="RayCast2D" parent="."]
+target_position = Vector2(-24, 0)
