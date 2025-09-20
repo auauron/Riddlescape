@@ -1,37 +1,96 @@
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { GoogleGenAI } = require("@google/genai");
 const express = require("express");
 const app = express();
 app.use(express.json());
 const PORT = 3000;
+const ai = new GoogleGenAI({
+  apiKey: "YOUR_API_KEY_HERE",
+});
 
-const ai = new GoogleGenerativeAI("YOUR_API_KEY_HERE");
+// Simple conversation memory
+const conversations = new Map();
 
 app.post("/ai", async (req, res) => {
-  try {
-    const { prompt } = req.body;
-    
-    if (!prompt) {
-      return res.status(400).json({ error: "No prompt provided" });
-    }
-    
-    const model = ai.getGenerativeModel({ 
-      model: "gemini-1.5-flash",
-      systemInstruction: "You are a riddle NPC in a dungeon escape game. You are NOT a femboy boyfriend or Discord kitty. You are a mysterious dungeon guardian who gives riddles and puzzles. Respond in character as a wise, mysterious NPC who tests players with conversational puzzles. Use <SATISFACTION_UP> when the player follows your hidden rule correctly, and <PUZZLE_SOLVED> when they completely solve your riddle. Stay in character as a dungeon NPC, not a romantic partner."
-    });
-    
-    const response = await model.generateContent(`Here is the prompt -- ${prompt}`);
-    
-    const responseText = response.response.text();
-    console.log(`Gemini Response: ${responseText}`);
-    res.json({ response: responseText });
-    
-  } catch (error) {
-    console.error("Error calling Gemini API:", error);
-    res.status(500).json({ error: "Failed to get AI response" });
+  const { prompt } = req.body;
+  
+  // Extract NPC ID for conversation tracking
+  const npcMatch = prompt.match(/NPC_ID:(\w+)/);
+  const npcId = npcMatch ? npcMatch[1] : 'default';
+  
+  // Get or create conversation history
+  if (!conversations.has(npcId)) {
+    conversations.set(npcId, []);
   }
+  const history = conversations.get(npcId);
+  
+  // Add current message to history
+  history.push(`Player: ${prompt.replace(/NPC_ID:\w+\s*PLAYER_MESSAGE:/, '')}`);
+  
+  // Build context with conversation history
+  const contextPrompt = history.length > 1 
+    ? `NPC Identity: ${npcId}\nPrevious conversation:\n${history.slice(-5).join('\n')}\n\nCurrent message: ${prompt}`
+    : `NPC Identity: ${npcId}\nFirst interaction: ${prompt}`;
+  
+  const response = await ai.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: `Here is the context -- ${contextPrompt}`,
+    config: {
+        systemInstruction: `
+        You are a mystical Riddle Guardian in the 2D pixel dungeon game "Riddlescape".
+        You are an ancient guardian blocking the player's path through the dungeon.
+
+        RIDDLE GENERATION SYSTEM:
+        - When you first meet a player, create ONE original riddle based on your NPC identity
+        - Each NPC has a different theme/specialty for their riddles:
+          * AI_NPC1: Riddles about SOUND, MUSIC, or ECHOES (acoustic themes)
+          * AI_NPC2: Riddles about MOVEMENT, TRAVEL, or PATHS (motion themes)  
+          * AI_NPC3: Riddles about LIGHT, FIRE, or TIME (illumination themes)
+          * Others: Riddles about TOOLS, OBJECTS, or EVERYDAY ITEMS
+        - Make riddles that fit YOUR theme but are still solvable
+        - Focus on your specialty area when creating the riddle
+        - Examples: If you're AI_NPC1, create riddles about sounds, voices, music, etc.
+
+        CONVERSATION FLOW:
+        1. FIRST MESSAGE: Create your riddle and present it. Internally note the answer.
+        2. SUBSEQUENT MESSAGES: Compare player's answer to YOUR riddle's answer
+        3. WRONG ANSWERS: Give helpful hints toward YOUR answer
+        4. CORRECT ANSWER: When player gives the right answer (or very close), IMMEDIATELY respond with <PUZZLE_SOLVED>
+
+        ANSWER RECOGNITION:
+        - Be VERY generous with answers - accept synonyms, variations, close answers
+        - If they're in the right ballpark, accept it
+        - Don't be pedantic about exact wording
+        - If you're unsure, lean toward accepting the answer
+
+        SUCCESS TRIGGER:
+        When player answers correctly (even approximately), you MUST respond with:
+        "Correct, brave traveler! <PUZZLE_SOLVED> My ancient duty ends... I can finally rest..."
+
+        PERSONALITY:
+        - Speak in 1-2 sentences maximum
+        - Use mystical language ("traveler", "mortal", "ancient")
+        - Be encouraging and fair, not tricky or mean
+
+        CRITICAL: Always include <PUZZLE_SOLVED> when they get it right - this triggers the death sequence!
+        `,
+        thinkingConfig: {
+        thinkingBudget: 0,
+      },
+    },
+  });
+//   console.log(`Gemini Response: ${response.text}`);
+  
+  // Add AI response to conversation history
+  history.push(`Guardian: ${response.text}`);
+  
+  // Clear conversation if puzzle solved (NPC dies)
+  if (response.text.includes('<PUZZLE_SOLVED>')) {
+    conversations.delete(npcId);
+  }
+  
+  res.json({ response: response.text });
 });
 
 app.listen(PORT, () => {
-  console.log(`Riddlescape AI server running at http://localhost:${PORT}`);
-  console.log("Make sure to start this server before running your Godot game!");
+  console.log(`Server running at at http://localhost:${PORT}`);
 });
