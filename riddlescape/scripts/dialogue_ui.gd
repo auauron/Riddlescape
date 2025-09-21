@@ -5,9 +5,20 @@ extends Control
 @onready var input_field = $NinePatchRect/InputField
 @onready var send_button = $NinePatchRect/SendButton
 @onready var close_button = $NinePatchRect/CloseButton
+@onready var audio_player = $AudioStreamPlayer
 
 var current_npc = null
 var is_dialogue_active = false
+var is_typing = false
+var typing_timer: Timer
+var current_text = ""
+var target_text = ""
+var typing_speed = 0.025  # Time between each character
+var word_sound_timer: Timer
+var sound_alternate = false  # Track if we should play reversed sound
+var sound_stop_timer: Timer  # Timer to stop sound at specific time
+var fade_timer: Timer  # Timer for fade effect
+var is_fading = false
 
 var sfx: AudioStream
 
@@ -19,6 +30,38 @@ func _ready():
 	visible = false
 	print("Initial visibility set to false")
 	
+	# Load talking sound
+	var talking_sound = load("res://assets/sprites/sound/talking.wav")
+	if talking_sound:
+		audio_player.stream = talking_sound
+		print("Talking sound loaded successfully")
+	else:
+		print("ERROR: Could not load talking.wav")
+	
+	# Create typing timer
+	typing_timer = Timer.new()
+	typing_timer.wait_time = typing_speed
+	typing_timer.timeout.connect(_on_typing_timer_timeout)
+	add_child(typing_timer)
+	
+	# Create word sound timer
+	word_sound_timer = Timer.new()
+	word_sound_timer.wait_time = 0.01  # Check every 0.01 seconds for sound restart
+	word_sound_timer.timeout.connect(_on_word_sound_timer_timeout)
+	add_child(word_sound_timer)
+	
+	# Create sound stop timer
+	sound_stop_timer = Timer.new()
+	sound_stop_timer.one_shot = true
+	sound_stop_timer.timeout.connect(_on_sound_stop_timer_timeout)
+	add_child(sound_stop_timer)
+	
+	# Create fade timer for smooth ending
+	fade_timer = Timer.new()
+	fade_timer.wait_time = 0.02  # Update fade every 0.02 seconds
+	fade_timer.timeout.connect(_on_fade_timer_timeout)
+	add_child(fade_timer)
+	
 	# Debug UI element finding
 	print("Looking for UI elements...")
 	print("name_label: ", name_label)
@@ -26,6 +69,7 @@ func _ready():
 	print("input_field: ", input_field)
 	print("send_button: ", send_button)
 	print("close_button: ", close_button)
+	print("audio_player: ", audio_player)
 	
 	# Connect button signals
 	if send_button:
@@ -188,8 +232,71 @@ func _on_send_button_pressed():
 
 func display_ai_response(response: String):
 	if dialogue_text:
-		dialogue_text.text += "\n\nRiddle Guardian: " + response
+		# Store the current text and prepare for typing effect
+		current_text = dialogue_text.text + "\n\nRiddle Guardian: "
+		target_text = current_text + response
 		
-	# Auto-scroll to bottom if possible
-	if dialogue_text.has_method("scroll_to_line"):
-		dialogue_text.scroll_to_line(dialogue_text.get_line_count())
+		# Start typing effect
+		start_typing_effect()
+
+func start_typing_effect():
+	is_typing = true
+	typing_timer.start()
+	word_sound_timer.start()
+
+func _on_typing_timer_timeout():
+	if current_text.length() < target_text.length():
+		# Add next character
+		current_text += target_text[current_text.length()]
+		dialogue_text.text = current_text
+		
+		# Auto-scroll to bottom if possible
+		if dialogue_text.has_method("scroll_to_line"):
+			dialogue_text.scroll_to_line(dialogue_text.get_line_count())
+	else:
+		# Finished typing
+		is_typing = false
+		typing_timer.stop()
+		word_sound_timer.stop()
+		# Start fade out when typing is complete
+		if audio_player.playing and not is_fading:
+			is_fading = true
+			fade_timer.start()
+			print("Typing finished, starting fade out...")
+
+func _on_word_sound_timer_timeout():
+	# Keep playing sound continuously during typing
+	if is_typing and audio_player and audio_player.stream and not is_fading:
+		# Only restart if sound has finished playing
+		if not audio_player.playing:
+			# Reset volume to full
+			audio_player.volume_db = 0.0
+			
+			# Alternate between normal and reversed playback
+			if sound_alternate:
+				audio_player.pitch_scale = -1.0  # Reverse playback
+				audio_player.play()  # Start from beginning but play backwards
+				print("Playing talking sound REVERSED continuously")
+			else:
+				audio_player.pitch_scale = 1.0   # Normal playback
+				audio_player.play()  # Start playing from beginning
+				print("Playing talking sound NORMAL continuously")
+			
+			# Toggle for next sound
+			sound_alternate = !sound_alternate
+
+func _on_sound_stop_timer_timeout():
+	# This function is no longer used for continuous playback
+	pass
+
+func _on_fade_timer_timeout():
+	if audio_player.playing and is_fading:
+		# Gradually reduce volume
+		audio_player.volume_db -= 3.0  # Reduce by 3dB each step
+		
+		# Stop when volume is very low or we've reached 0.67s total
+		if audio_player.volume_db <= -30.0:
+			audio_player.stop()
+			fade_timer.stop()
+			is_fading = false
+			print("Audio faded out smoothly")
