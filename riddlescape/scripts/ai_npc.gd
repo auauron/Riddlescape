@@ -166,8 +166,9 @@ func send_to_ai(message: String):
 		return
 	
 	var headers = ["Content-Type: application/json"]
-	# Send the player message with NPC identifier for specific riddles
-	var npc_prompt = "NPC_ID:" + name + " PLAYER_MESSAGE:" + message
+	# Send the player message with character name instead of technical NPC ID
+	var character_name = "Mysterious Riddler"
+	var npc_prompt = "CHARACTER:" + character_name + " PLAYER_MESSAGE:" + message
 	var json_body = JSON.stringify({"prompt": npc_prompt})
 	
 	print("Sending request to: ", AI_SERVER_URL)

@@ -129,6 +129,8 @@ func start_dialogue(npc):
 	current_npc = npc
 	is_dialogue_active = true
 
+	# Reset sound system for fresh start
+	reset_sound_system()
 	
 	print("Setting dialogue visible...")
 	visible = true
@@ -138,21 +140,23 @@ func start_dialogue(npc):
 	
 	# Set NPC name
 	if name_label:
-		name_label.text = "Riddle Guardian"
+		name_label.text = "Mysterious Riddler"
 		print("Name label set")
 	else:
 		print("ERROR: name_label not found!")
 	
-	# Set initial dialogue
+	# Clear previous dialogue and set fresh initial dialogue
 	if dialogue_text:
-		dialogue_text.text = "Greetings, brave traveler! I am the Riddle Guardian of this ancient dungeon. To pass through these halls, you must prove your wit with riddles and puzzles. Are you ready to test your mind against the mysteries I guard?"
-		print("Dialogue text set")
+		dialogue_text.text = ""  # Clear any previous conversation
+		dialogue_text.text = "Greetings, traveler... I am the Mysterious Riddler of these ancient halls. My enigmas and puzzles have confounded many who dared to venture here. Do you possess the wit to unravel the secrets I guard?"
+		print("Dialogue text cleared and reset with fresh greeting")
 	else:
 		print("ERROR: dialogue_text not found!")
 	
-	# Focus input field with a small delay to ensure UI is ready
+	# Clear input field
 	if input_field:
-		print("Input field found, focusing...")
+		input_field.text = ""  # Clear any previous input
+		print("Input field cleared and focusing...")
 		call_deferred("_focus_input_field")
 	else:
 		print("ERROR: input_field not found!")
@@ -232,12 +236,34 @@ func _on_send_button_pressed():
 
 func display_ai_response(response: String):
 	if dialogue_text:
+		# Reset sound system for new dialogue
+		reset_sound_system()
+		
 		# Store the current text and prepare for typing effect
-		current_text = dialogue_text.text + "\n\nRiddle Guardian: "
+		current_text = dialogue_text.text + "\n\nMysterious Riddler: "
 		target_text = current_text + response
 		
 		# Start typing effect
 		start_typing_effect()
+
+func reset_sound_system():
+	# Stop all sound-related timers and reset states
+	if audio_player.playing:
+		audio_player.stop()
+	
+	if fade_timer.timeout.is_connected(_on_fade_timer_timeout):
+		fade_timer.stop()
+	
+	if sound_stop_timer.timeout.is_connected(_on_sound_stop_timer_timeout):
+		sound_stop_timer.stop()
+	
+	# Reset sound state variables
+	is_fading = false
+	sound_alternate = false
+	audio_player.volume_db = 0.0
+	audio_player.pitch_scale = 1.0
+	
+	print("Sound system reset for new dialogue")
 
 func start_typing_effect():
 	is_typing = true
