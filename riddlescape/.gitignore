@@ -17,7 +17,6 @@ package-lock.json
 config.json
 *.key
 *.pem
-server_setup.js
 
 # Build outputs
 builds/

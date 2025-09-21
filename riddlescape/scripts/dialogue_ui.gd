@@ -9,6 +9,8 @@ extends Control
 var current_npc = null
 var is_dialogue_active = false
 
+var sfx: AudioStream
+
 signal dialogue_closed
 
 func _ready():
@@ -82,6 +84,7 @@ func start_dialogue(npc):
 	print("start_dialogue called! NPC: ", npc.name if npc else "null")
 	current_npc = npc
 	is_dialogue_active = true
+
 	
 	print("Setting dialogue visible...")
 	visible = true

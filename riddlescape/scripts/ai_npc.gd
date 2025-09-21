@@ -81,6 +81,10 @@ func find_dialogue_ui():
 		target_dialogue_name = "AiDialogue2"
 	elif name == "AI_NPC3":
 		target_dialogue_name = "AiDialogue3"
+	elif name == "AI_NPC4":
+		target_dialogue_name = "AiDialogue4"
+	elif name == "AI_NPC5":
+		target_dialogue_name = "AiDialogue5"
 	
 	print("NPC ", name, " looking for dialogue UI: ", target_dialogue_name)
 	
@@ -144,12 +148,12 @@ func start_interaction():
 	if dialogue_ui and dialogue_ui.has_method("start_dialogue"):
 		print("Opening dialogue UI: ", dialogue_ui.name)
 		dialogue_ui.start_dialogue(self)
-		# Connect to dialogue closed signal to resume movement
+		
 		if dialogue_ui.has_signal("dialogue_closed") and not dialogue_ui.dialogue_closed.is_connected(_on_dialogue_closed):
 			dialogue_ui.dialogue_closed.connect(_on_dialogue_closed)
 	else:
-		print("ERROR: Could not find valid dialogue UI with start_dialogue method!")
-		# Fallback - end conversation
+		# Fallback - end conversation if no dialogue UI found
+		print("ERROR: No valid dialogue UI found!")
 		is_in_conversation = false
 		if player and player.has_method("set"):
 			player.is_in_dialogue = false
@@ -193,7 +197,6 @@ func _on_ai_response_received(_result: int, response_code: int, _headers: Packed
 				var ai_response = response_data["response"]
 				print("AI Response: ", ai_response)
 				
-				# Check if puzzle is solved
 				print("Checking for PUZZLE_SOLVED token in response...")
 				var response_lower = ai_response.to_lower()
 				
@@ -238,9 +241,8 @@ func _on_ai_response_received(_result: int, response_code: int, _headers: Packed
 			print("ERROR: No dialogue UI available to display error message")
 
 func end_conversation():
-	# Conversation ended
 	is_in_conversation = false
-	# Re-enable player movement
+
 	if player and player.has_method("set"):
 		player.is_in_dialogue = false
 	if dialogue_ui:
@@ -256,14 +258,12 @@ func _on_dialogue_closed():
 func trigger_death_sequence():
 	print("Starting NPC death sequence...")
 	
-	# IMMEDIATELY stop all movement and processing
 	is_dead = true  # Mark as dead to stop all movement
 	is_in_conversation = true  # Keep movement disabled permanently
 	velocity = Vector2.ZERO
 	set_physics_process(false)  # Stop physics processing immediately
 	set_process(false)  # Stop regular processing too
 	
-	# Close dialogue after a brief delay to let player read the final message
 	await get_tree().create_timer(2.0).timeout
 	
 	# Close dialogue and end conversation
@@ -274,7 +274,7 @@ func trigger_death_sequence():
 	if animated_sprite:
 		print("Playing death animation...")
 		animated_sprite.play("dead")
-		# Connect to animation finished signal if not already connected
+		
 		if not animated_sprite.animation_finished.is_connected(_on_death_animation_finished):
 			animated_sprite.animation_finished.connect(_on_death_animation_finished)
 	else:

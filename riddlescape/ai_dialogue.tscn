@@ -64,3 +64,5 @@ offset_top = -1.0
 offset_right = 498.0
 offset_bottom = 30.0
 text = "x"
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
