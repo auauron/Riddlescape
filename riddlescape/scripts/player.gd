@@ -8,6 +8,7 @@ const SPEED = 140.0
 const JUMP_VELOCITY = -400.0
 var is_dead = false
 var is_in_dialogue = false
+var is_attacking = false
 
 # Footstep system
 var is_walking = false
@@ -32,13 +33,11 @@ func _ready():
 		print("FootstepPlayer2 stream: ", footstep_player2.stream)
 
 func _physics_process(delta: float) -> void:
-	if is_dead or is_in_dialogue:
-		# Force idle animation during dialogue
-		if is_in_dialogue and not is_dead:
+	if is_dead or is_in_dialogue or is_attacking:
+		if is_in_dialogue and not is_dead and not is_attacking:
 			animated_sprite.play("idle")
 		return
 		
-	# Add the gravity.
 	if not is_on_floor():
 		velocity += get_gravity() * delta
 
@@ -47,13 +46,11 @@ func _physics_process(delta: float) -> void:
 
 	var direction := Input.get_axis("move_left", "move_right")
 	
-	#flip the sprite
 	if direction > 0:
 		animated_sprite.flip_h = false
 	elif direction < 0:
 		animated_sprite.flip_h = true
 		
-	# play animation
 	if is_on_floor():			
 		if direction == 0:
 			animated_sprite.play("idle")
@@ -65,7 +62,6 @@ func _physics_process(delta: float) -> void:
 		animated_sprite.play("jump")
 		is_walking = false
 	
-	# Handle footstep sounds
 	handle_footsteps(delta)
 	
 	if direction:
@@ -103,6 +99,14 @@ func play_footstep():
 	# Switch to the other sound for next step
 	footstep_alternate = !footstep_alternate
 	
+func attack_npc():
+	if not is_attacking:
+		is_attacking = true
+		animated_sprite.play("atk")
+		await animated_sprite.animation_finished
+		is_attacking = false
+		animated_sprite.play("idle")
+
 func die():
 	is_dead = true
 	animated_sprite.play("dead")

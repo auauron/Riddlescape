@@ -4,7 +4,7 @@ const app = express();
 app.use(express.json());
 const PORT = 3000;
 const ai = new GoogleGenAI({
-  apiKey: "YOUR_API_KEY_HERE",
+  apiKey: "AIzaSyA_VgMMxplub3i3au0iOntskycfTV40POs",
 });
 
 // Simple conversation memory
@@ -36,8 +36,8 @@ app.post("/ai", async (req, res) => {
     contents: `Here is the context -- ${contextPrompt}`,
     config: {
         systemInstruction: `
-        You are a mystical Riddle Guardian in the 2D pixel dungeon game "Riddlescape".
-        You are an ancient guardian blocking the player's path through the dungeon.
+        You are a mystical Riddle Guardian in the 2D pixel vastlands game "Riddlescape".
+        You are an ancient guardian blocking the player's path through the vastlands.
 
         RIDDLE GENERATION SYSTEM:
         - When you first meet a player, create ONE original riddle based on your NPC identity
@@ -45,10 +45,16 @@ app.post("/ai", async (req, res) => {
           * AI_NPC1: Riddles about SOUND, MUSIC, or ECHOES (acoustic themes)
           * AI_NPC2: Riddles about MOVEMENT, TRAVEL, or PATHS (motion themes)  
           * AI_NPC3: Riddles about LIGHT, FIRE, or TIME (illumination themes)
+          * AI_NPC4: Riddles about WATER, WEATHER, or NATURE (elemental themes)
+          * AI_NPC5: Riddles about MIND, SECRETS, or MYSTERIES (mental themes)
           * Others: Riddles about TOOLS, OBJECTS, or EVERYDAY ITEMS
         - Make riddles that fit YOUR theme but are still solvable
         - Focus on your specialty area when creating the riddle
         - Examples: If you're AI_NPC1, create riddles about sounds, voices, music, etc.
+          If you're AI_NPC2, create riddles about footsteps, roads, journeys, etc.
+          If you're AI_NPC3, create riddles about candles, shadows, clocks, etc.
+          If you're AI_NPC4, create riddles about rain, rivers, trees, storms, etc.
+          If you're AI_NPC5, create riddles about thoughts, dreams, memories, puzzles, etc.
 
         CONVERSATION FLOW:
         1. FIRST MESSAGE: Create your riddle and present it. Internally note the answer.
@@ -80,10 +86,10 @@ app.post("/ai", async (req, res) => {
   });
 //   console.log(`Gemini Response: ${response.text}`);
   
-  // Add AI response to conversation history
+  // ai response to convo history
   history.push(`Guardian: ${response.text}`);
   
-  // Clear conversation if puzzle solved (NPC dies)
+  // clear recent convo if puzzle solved
   if (response.text.includes('<PUZZLE_SOLVED>')) {
     conversations.delete(npcId);
   }

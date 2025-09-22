@@ -1,5 +1,8 @@
 extends CharacterBody2D
 
+# Signal to notify when the NPC is defeated
+signal npc_defeated
+
 const speed = 60
 const MOVE_DISTANCE = 48  
 const AI_SERVER_URL = "http://localhost:3000/ai"
@@ -139,21 +142,16 @@ func start_interaction():
 	# Disable player movement during dialogue
 	if player and player.has_method("set"):
 		player.is_in_dialogue = true
-	
-	# Ensure we have a valid dialogue UI
-	if not dialogue_ui or not dialogue_ui.has_method("start_dialogue"):
-		print("No valid dialogue UI - searching...")
-		find_dialogue_ui()
-	
-	if dialogue_ui and dialogue_ui.has_method("start_dialogue"):
-		print("Opening dialogue UI: ", dialogue_ui.name)
-		dialogue_ui.start_dialogue(self)
 		
-		if dialogue_ui.has_signal("dialogue_closed") and not dialogue_ui.dialogue_closed.is_connected(_on_dialogue_closed):
-			dialogue_ui.dialogue_closed.connect(_on_dialogue_closed)
+		# Connect to the player's attack animation function
+		if player.has_method("connect_to_npc"):
+			player.connect_to_npc(self)
+	
+	# Show dialogue UI
+	if dialogue_ui:
+		dialogue_ui.start_dialogue(self)
 	else:
-		# Fallback - end conversation if no dialogue UI found
-		print("ERROR: No valid dialogue UI found!")
+		print("ERROR: No dialogue UI found for interaction")
 		is_in_conversation = false
 		if player and player.has_method("set"):
 			player.is_in_dialogue = false
@@ -166,9 +164,8 @@ func send_to_ai(message: String):
 		return
 	
 	var headers = ["Content-Type: application/json"]
-	# Send the player message with character name instead of technical NPC ID
-	var character_name = "Mysterious Riddler"
-	var npc_prompt = "CHARACTER:" + character_name + " PLAYER_MESSAGE:" + message
+	# Send the player message with the actual NPC ID for themed riddles
+	var npc_prompt = "NPC_ID:" + name + " PLAYER_MESSAGE:" + message
 	var json_body = JSON.stringify({"prompt": npc_prompt})
 	
 	print("Sending request to: ", AI_SERVER_URL)
@@ -202,7 +199,7 @@ func _on_ai_response_received(_result: int, response_code: int, _headers: Packed
 				var response_lower = ai_response.to_lower()
 				
 				if ai_response.contains("<PUZZLE_SOLVED>"):
-					print("🎉 PUZZLE SOLVED TOKEN FOUND! Triggering NPC death...")
+					print(" PUZZLE SOLVED TOKEN FOUND! Triggering NPC death...")
 					# Remove the token from the displayed message
 					var clean_response = ai_response.replace("<PUZZLE_SOLVED>", "")
 					if dialogue_ui:
@@ -217,7 +214,7 @@ func _on_ai_response_received(_result: int, response_code: int, _headers: Packed
 					  response_lower.contains("duty ends") or response_lower.contains("my duty") or
 					  (response_lower.contains("correct") and response_lower.contains("echo")) or
 					  (last_player_message.contains("echo") and response_lower.contains("correct"))):
-					print("🎉 PUZZLE SOLVED detected by success keywords! Triggering NPC death...")
+					print(" PUZZLE SOLVED detected by success keywords! Triggering NPC death...")
 					print("Player said: '", last_player_message, "' and AI responded with success indicators")
 					if dialogue_ui:
 						dialogue_ui.display_ai_response(ai_response)
@@ -259,13 +256,24 @@ func _on_dialogue_closed():
 func trigger_death_sequence():
 	print("Starting NPC death sequence...")
 	
-	is_dead = true  # Mark as dead to stop all movement
-	is_in_conversation = true  # Keep movement disabled permanently
-	velocity = Vector2.ZERO
-	set_physics_process(false)  # Stop physics processing immediately
-	set_process(false)  # Stop regular processing too
+	await get_tree().create_timer(3.0).timeout
 	
-	await get_tree().create_timer(2.0).timeout
+	if dialogue_ui:
+		dialogue_ui.close_dialogue()
+	end_conversation()
+	
+	await get_tree().create_timer(0.5).timeout
+	
+	if player:
+		player.attack_npc()
+	
+	is_dead = true
+	is_in_conversation = true
+	velocity = Vector2.ZERO
+	set_physics_process(false)
+	set_process(false)
+	
+	await get_tree().create_timer(1.0).timeout
 	
 	# Close dialogue and end conversation
 	if dialogue_ui:

@@ -8,7 +8,7 @@
 size = Vector2(41.5, 52)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_dialogue"]
-size = Vector2(137.5, 148)
+size = Vector2(137.5, 58)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_np840"]
 atlas = ExtResource("1_np840")
@@ -402,7 +402,7 @@ shape = SubResource("RectangleShape2D_tjild")
 [node name="DialogueArea" type="Area2D" parent="."]
 
 [node name="DialogueCollision" type="CollisionShape2D" parent="DialogueArea"]
-position = Vector2(2, -26)
+position = Vector2(2, 19)
 shape = SubResource("RectangleShape2D_dialogue")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]

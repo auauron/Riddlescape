@@ -260,7 +260,7 @@ func reset_sound_system():
 	# Reset sound state variables
 	is_fading = false
 	sound_alternate = false
-	audio_player.volume_db = 0.0
+	audio_player.volume_db = -8.0
 	audio_player.pitch_scale = 1.0
 	
 	print("Sound system reset for new dialogue")
@@ -295,20 +295,20 @@ func _on_word_sound_timer_timeout():
 	if is_typing and audio_player and audio_player.stream and not is_fading:
 		# Only restart if sound has finished playing
 		if not audio_player.playing:
-			# Reset volume to full
-			audio_player.volume_db = 0.0
+			# Reset volume to reduced level
+			audio_player.volume_db = -8.0
 			
-			# Alternate between normal and reversed playback
+			# Alternate between normal (first) and reversed (second) playback
 			if sound_alternate:
-				audio_player.pitch_scale = -1.0  # Reverse playback
-				audio_player.play()  # Start from beginning but play backwards
-				print("Playing talking sound REVERSED continuously")
+				audio_player.pitch_scale = -1.0  # Second sound: Reverse playback
+				audio_player.play()
+				print("Playing talking sound #2: REVERSED")
 			else:
-				audio_player.pitch_scale = 1.0   # Normal playback
-				audio_player.play()  # Start playing from beginning
-				print("Playing talking sound NORMAL continuously")
+				audio_player.pitch_scale = 1.0   # First sound: Normal playback
+				audio_player.play()
+				print("Playing talking sound #1: NORMAL")
 			
-			# Toggle for next sound
+			# Toggle for next sound (false=normal, true=reversed)
 			sound_alternate = !sound_alternate
 
 func _on_sound_stop_timer_timeout():

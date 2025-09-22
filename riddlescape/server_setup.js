@@ -1,11 +1,15 @@
+require('dotenv').config();
 const { GoogleGenAI } = require("@google/genai");
 const express = require("express");
 const app = express();
 app.use(express.json());
 const PORT = 3000;
-const ai = new GoogleGenAI({
-  apiKey: "AIzaSyA_VgMMxplub3i3au0iOntskycfTV40POs",
-});
+const apiKey = process.env.GOOGLE_GENAI_API_KEY;
+if (!apiKey) {
+  throw new Error("GOOGLE_GENAI_API_KEY is not defined");
+}
+
+const ai = new GoogleGenAI({ apiKey: apiKey });
 
 // Simple conversation memory
 const conversations = new Map();
