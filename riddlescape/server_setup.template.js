@@ -84,7 +84,6 @@ app.post("/ai", async (req, res) => {
       },
     },
   });
-//   console.log(`Gemini Response: ${response.text}`);
   
   // ai response to convo history
   history.push(`Guardian: ${response.text}`);

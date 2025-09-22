@@ -22,15 +22,7 @@ func player():
 	return true
 
 func _ready():
-	print("Player _ready() called")
-	print("Checking audio nodes...")
-	print("footstep_player1: ", footstep_player1)
-	print("footstep_player2: ", footstep_player2)
-	
-	if footstep_player1:
-		print("FootstepPlayer1 stream: ", footstep_player1.stream)
-	if footstep_player2:
-		print("FootstepPlayer2 stream: ", footstep_player2.stream)
+	pass
 
 func _physics_process(delta: float) -> void:
 	if is_dead or is_in_dialogue or is_attacking:
